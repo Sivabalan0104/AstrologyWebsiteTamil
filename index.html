@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>திருக்கணித ஜாதகக் கணக்கீடு (D1, D9, தசை இருப்பு)</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.0/astronomy.min.js"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, "Noto Sans Tamil", "Latha", "Lohit Tamil", Arial, sans-serif; margin: 0; color: #1a1a1a; background:#fafafa; }
+    header { padding: 16px 20px; background:#fff; border-bottom:1px solid #eee; position: sticky; top: 0; z-index:1; }
+    h1 { margin: 0 0 8px; font-size: 18px; }
+    .wrap { max-width: 1100px; margin: 16px auto; padding: 0 16px 80px; }
+    .card { background: #fff; border:1px solid #eee; border-radius: 10px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 1px rgba(0,0,0,.03); }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 10px; }
+    .field { grid-column: span 12; }
+    @media(min-width:720px){ .field.half { grid-column: span 6; } .field.third { grid-column: span 4; } }
+    label { display:block; font-size: 13px; color:#555; margin-bottom:6px; }
+    input, select, button, datalist { width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:8px; font-size:14px; background:#fff; }
+    input[type="number"] { text-align: right; }
+    button { background:#2f6fed; color:#fff; border:0; cursor:pointer; font-weight:600; }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .note { font-size: 12px; color:#666; margin-top:6px; }
+    .muted { color:#888; font-size:12px; }
+    .error { color:#b00020; }
+    .charts { display:grid; grid-template-columns: 1fr; gap:16px; }
+    @media(min-width:960px){ .charts { grid-template-columns: 1fr 1fr; } }
+    .chart { border:1px solid #ddd; background:#fff; border-radius:8px; padding:12px; }
+    .chart-title { font-weight:700; margin-bottom:8px; }
+    .south-grid { 
+      display:grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 90px); gap:6px;
+    }
+    .house {
+      border:1px solid #ccc; border-radius:6px; padding:6px; display:flex; flex-direction:column; font-size:12px; background:#fcfcfc; position:relative;
+    }
+    .house .sign {
+      font-weight:700; font-size:12px; color:#2a2a2a; margin-bottom:4px;
+    }
+    .house .pts { line-height: 1.35; font-size:12px; }
+    .house.center { background: #fff; border:1px dashed #ddd; }
+    .legend { font-size:12px; color:#444; }
+    .out { white-space:pre-wrap; font-size: 14px; }
+    .badge { display:inline-block; font-size:11px; background:#eef3ff; color:#2643a0; border:1px solid #d7e2ff; padding:2px 6px; border-radius:999px; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { border-bottom:1px solid #eee; padding:8px; text-align:left; font-size: 14px; }
+    th { background:#fafbff; }
+    .small { font-size: 12px; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>திருக்கணித ஜாதகக் கணக்கீடு — Rasi (D1), Navamsa (D9), Vimshottari தசை இருப்பு</h1>
+  <div class="muted">கணக்கீடு: Drik (Thirukanitha) + லஹிரி (சித்ரபக்ஷ) அயனாம்சம்</div>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <div class="grid">
+      <div class="field third">
+        <label>பிறந்த தேதி & நேரம் (உள்ளூர் நேரம்)</label>
+        <input id="dt" type="datetime-local" />
+        <div class="note">உதா: 1994-03-12 05:45</div>
+      </div>
+      <div class="field third">
+        <label>பிறந்த இடம் (நகரம், நாடு)</label>
+        <input id="place" list="place-list" placeholder="உதா: Chennai, India" />
+        <datalist id="place-list"></datalist>
+        <div class="note">ஒரு கிளிக்: கீழே வரும் பட்டியலில் இருந்து இடத்தைத் தேர்வு செய்யவும்.</div>
+      </div>
+      <div class="field third">
+        <label>நேர மண்டலம் (UTC +/− மணி)</label>
+        <input id="tz" type="number" step="0.25" value="5.5" />
+        <div class="note">இந்தியா: 5.5 • இலங்கை: 5.5 • சிங்கப்பூர்: 8. தயவுசெய்து சரிபார்க்கவும்.</div>
+      </div>
+
+      <div class="field half">
+        <label>அட்சரேகை (Latitude)</label>
+        <input id="lat" type="number" step="0.000001" placeholder="(தானாக நிரம்பும்)" />
+      </div>
+      <div class="field half">
+        <label>தேக்கரேகை (Longitude)</label>
+        <input id="lon" type="number" step="0.000001" placeholder="(தானாக நிரம்பும்)" />
+      </div>
+
+      <div class="field">
+        <button id="calc">ஜாதகம் கணக்கிடு</button>
+        <span id="status" class="muted" style="margin-left:8px;"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="legend">
+      குறிப்பு: இது ஒரு எளிய வலை பயன்பாடு. மிகுந்த துல்லியம் தேவையெனில் Swiss Ephemeris (WASM) சேர்க்கலாம்.
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="chart">
+      <div class="chart-title">ராசி ஜாதகம் (D1)</div>
+      <div id="chart-d1" class="south-grid"></div>
+    </div>
+    <div class="chart">
+      <div class="chart-title">நவாம்சம் (D9)</div>
+      <div id="chart-d9" class="south-grid"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="chart-title">தசை இருப்பு (Vimshottari)</div>
+    <div id="dasha-balance" class="out"></div>
+    <table id="dasha-table">
+      <thead><tr><th>மகாதசை</th><th>தொடக்கம்</th><th>முடிவு</th><th>காலம்</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="small muted" style="margin-top:8px;">கணக்கீடு: பிறந்த நேர சந்திரன் நட்சத்திர அடிப்படையில் (விம்சோத்தரி 120 ஆண்டுகள்).</div>
+  </div>
+
+  <div class="card">
+    <div class="chart-title">பிறந்த நேர பஞ்சாங்கம் (சுருக்கம்)</div>
+    <div id="panchanga" class="out"></div>
+  </div>
+</div>
+
+<script>
+/* ———————————————— Tamil labels ———————————————— */
+const SIGNS_TA = [
+  "மேஷம்", "ரிஷபம்", "மிதுனம்", "கடகம்", "சிம்மம்", "கன்னி",
+  "துலாம்", "விருச்சிகம்", "தனுசு", "மகரம்", "கும்பம்", "மீனம்"
+];
+const PLANETS = [
+  { key: "Sun", name: "சூரியன்" },
+  { key: "Moon", name: "சந்திரன்" },
+  { key: "Mars", name: "செவ்வாய்" },
+  { key: "Mercury", name: "புதன்" },
+  { key: "Jupiter", name: "குரு" },
+  { key: "Venus", name: "சுக்கிரன்" },
+  { key: "Saturn", name: "சனி" },
+  { key: "Rahu", name: "ராகு" },
+  { key: "Ketu", name: "கேது" }
+];
+const NAKSHATRA_TA = [
+  "அச்வினி","பரணி","கார்த்திகை","ரோகிணி","மிருகசீரிடம்","திருவாதிரை",
+  "புனர்பூசம்","பூசம்","ஆயில்யம்","மகம்","பூரம்","உத்திரம்",
+  "ஹஸ்தம்","சித்திரை","சுவாதி","விசாகம்","அனுஷம்","கேட்டை",
+  "மூலம்","பூராடம்","உத்திராடம்","திருவோணம்","அவிட்டம்","சதயம்",
+  "பூரட்டாதி","உத்திரட்டாதி","ரேவதி"
+];
+const TITHI_TA = [
+  "சுக்ல பிரதமை","சுக்ல த்விதியை","சுக்ல த்ரிதியை","சுக்ல சதுர்த்தி","சுக்ல பஞ்சமி",
+  "சுக்ல ஷஷ்டி","சுக்ல சப்தமி","சுக்ல அஷ்டமி","சுக்ல நவமி","சுக்ல தசமி",
+  "சுக்ல ஏகாதசி","சுக்ல த்வாதசி","சுக்ல த்ரயோதசி","சுக்ல சதுர்தசி","பௌர்ணமி",
+  "கிருஷ்ண பிரதமை","கிருஷ்ண த்விதியை","கிருஷ்ண த்ரிதியை","கிருஷ்ண சதுர்த்தி","கிருஷ்ண பஞ்சமி",
+  "கிருஷ்ண ஷஷ்டி","கிருஷ்ண சப்தமி","கிருஷ்ண அஷ்டமி","கிருஷ்ண நவமி","கிருஷ்ண தசமி",
+  "கிருஷ்ண ஏகாதசி","கிருஷ்ண த்வாதசி","கிருஷ்ண த்ரயோதசி","கிருஷ்ண சதுர்தசி","அமாவாசை"
+];
+/* South-Indian chart placement: signIndex -> cell index in 4x4 */
+const SIGN_TO_CELL = [12,8,4,0,1,2,3,7,11,15,14,13]; // Aries..Pisces
+const CELL_CENTER = new Set([5,6,9,10]); // 4 center cells
+
+/* ———————————————— Helpers ———————————————— */
+const degNorm = d => ((d % 360) + 360) % 360;
+function dms(deg) {
+  const d = Math.floor(deg); const mFloat = (deg - d) * 60;
+  const m = Math.floor(mFloat); const s = Math.round((mFloat - m) * 60);
+  return `${d}°${m.toString().padStart(2,"0")}′${s.toString().padStart(2,"0")}″`;
+}
+function toTamilDigits(str) {
+  const map = {'0':'௦','1':'௧','2':'௨','3':'௩','4':'௪','5':'௫','6':'௬','7':'௭','8':'௮','9':'௯'};
+  return String(str).replace(/[0-9]/g, d => map[d]);
+}
+
+/* Lahiri (Chitrapaksha) ayanamsa approximation:
+   Reference ~ J2000: 23.856902°, rate ~ 50.290966″ per year = 0.013968878°/yr.
+   Good for charts; for minute-accurate panchanga boundaries, switch to Swiss Ephemeris. */
+function lahiriAyanamsa(dateUTC) {
+  const y = dateUTC.getUTCFullYear() + (dateUTC.getUTCMonth()+1 + (dateUTC.getUTCDate()-0.5)/30)/12;
+  const years = y - 2000.0;
+  return 23.856902 + 0.013968878 * years;
+}
+
+/* Mean obliquity of the ecliptic (arcdeg), Laskar 1986 */
+function meanObliquity(dateUTC) {
+  const jd = (dateUTC.getTime()/86400000) + 2440587.5;
+  const T = (jd - 2451545.0) / 36525;
+  const sec = 84381.448 - 46.8150*T - 0.00059*T*T + 0.001813*T*T*T;
+  return sec / 3600.0;
+}
+
+/* Local Sidereal Time (degrees) using Astronomy Engine GST + longitude */
+function localSiderealDegrees(dateUTC, lon) {
+  const gstHours = Astronomy.SiderealTime(dateUTC);
+  const lst = (gstHours * 15 + lon);
+  return degNorm(lst);
+}
+
+/* Ascendant longitude (deg) from latitude, LST, obliquity */
+function ascendantLongitude(dateUTC, lat, lon) {
+  const phi = lat * Math.PI/180;
+  const theta = localSiderealDegrees(dateUTC, lon) * Math.PI/180;
+  const eps = meanObliquity(dateUTC) * Math.PI/180;
+
+  const sinθ = Math.sin(theta), cosθ = Math.cos(theta);
+  const tanφ = Math.tan(phi), sinε = Math.sin(eps), cosε = Math.cos(eps);
+
+  // Formula: λAsc = atan2( -cosθ, sinθ*cosε + tanφ*sinε )
+  let lambda = Math.atan2(-cosθ, (sinθ * cosε + tanφ * sinε)) * 180/Math.PI;
+  return degNorm(lambda);
+}
+
+/* Mean lunar node (ascending) longitude (deg). Rahu = Ω; Ketu = Ω + 180° */
+function meanLunarNodeLongitude(dateUTC) {
+  const jd = (dateUTC.getTime()/86400000) + 2440587.5;
+  const T = (jd - 2451545.0)/36525.0;
+  // Meeus: longitude of mean ascending node of the Moon (Ω)
+  let Omega = 125.04452 - 1934.136261*T + 0.0020708*T*T + (T*T*T)/450000;
+  return degNorm(Omega);
+}
+
+/* Get geocentric ecliptic longitude of body (tropical, deg) using Astronomy Engine */
+function eclipticLongitude(bodyKey, time) {
+  // For planets & Sun/Moon
+  let body = Astronomy.Body[bodyKey] || bodyKey;
+  const equ = Astronomy.Equator(body, time, /*ofDate*/ true, /*aberration*/ true, /*observer*/ null);
+  const ecl = Astronomy.Ecliptic(equ);
+  return degNorm(ecl.elon);
+}
+
+/* Build south-indian chart grid */
+function buildSouthGrid(container) {
+  container.innerHTML = "";
+  for (let i=0;i<16;i++) {
+    const div = document.createElement("div");
+    div.className = "house" + (CELL_CENTER.has(i) ? " center" : "");
+    if (CELL_CENTER.has(i)) {
+      div.innerHTML = "<div class='pts' style='opacity:.4;'>—</div>";
+    } else {
+      const signIdx = SIGN_TO_CELL.indexOf(i);
+      const s = document.createElement("div");
+      s.className = "sign";
+      s.textContent = SIGNS_TA[signIdx];
+      const pts = document.createElement("div");
+      pts.className = "pts";
+      pts.dataset.sign = signIdx;
+      div.appendChild(s); div.appendChild(pts);
+    }
+    container.appendChild(div);
+  }
+}
+function placePoint(container, signIndex, label) {
+  const cellIndex = SIGN_TO_CELL[signIndex];
+  const cell = container.children[cellIndex];
+  const pts = cell.querySelector(".pts");
+  pts.innerHTML += (pts.innerHTML ? "<br>" : "") + label;
+}
+
+/* Nakshatra index (1..27) and pada (1..4) from sidereal Moon longitude */
+function nakshatraFromMoon(moonSidLon) {
+  const part = (moonSidLon % 360) / (13 + 20/60); // 13°20′ = 13 + 1/3
+  const idx = Math.floor(part); // 0..26
+  const pada = Math.floor((part - idx) * 4) + 1;
+  const frac = (part - idx); // fraction within current nakshatra
+  return { idx: idx+1, pada, frac };
+}
+
+/* Vimshottari Dasha computation */
+const DASHA_LORDS = ["கேது","சுக்கிரன்","சூரியன்","சந்திரன்","செவ்வாய்","ராகு","குரு","சனி","புதன்"];
+const DASHA_YEARS = [7,20,6,10,7,18,16,19,17];
+function addYears(dateUTC, years) {
+  const d = new Date(dateUTC.getTime());
+  d.setUTCFullYear(d.getUTCFullYear() + years);
+  return d;
+}
+function formatDateLocal(dUTC, tzOffsetHours) {
+  const ms = dUTC.getTime() + tzOffsetHours*3600*1000;
+  const d = new Date(ms);
+  const y = d.getUTCFullYear();
+  const m = (d.getUTCMonth()+1).toString().padStart(2,"0");
+  const dd = d.getUTCDate().toString().padStart(2,"0");
+  return `${toTamilDigits(`${dd}-${m}-${y}`)}`;
+}
+function formatDurationYears(years) {
+  const totalDays = years * 365.2425;
+  const y = Math.floor(totalDays / 365.2425);
+  const remDays = totalDays - y * 365.2425;
+  const m = Math.floor(remDays / 30.4369);
+  const d = Math.round(remDays - m * 30.4369);
+  const parts = [];
+  if (y) parts.push(`${toTamilDigits(y)} ஆ`);
+  if (m) parts.push(`${toTamilDigits(m)} மா`);
+  if (d) parts.push(`${toTamilDigits(d)} நா`);
+  return parts.join(" ");
+}
+function computeVimshottari(moonSidLon, birthUTC) {
+  const part = (moonSidLon % 360) / (13 + 20/60);
+  const nakIdx0 = Math.floor(part); // 0..26
+  const frac = part - nakIdx0;      // 0..1 within current nak
+  const lordIndex = nakIdx0 % 9;
+
+  const balanceYears = (1 - frac) * DASHA_YEARS[lordIndex];
+
+  const rows = [];
+  let start = new Date(birthUTC.getTime());
+  // First, remaining of birth dasha
+  let end = addYears(start, balanceYears);
+  rows.push({lord: DASHA_LORDS[lordIndex], start, end, years: balanceYears});
+
+  // Then continue through full cycles up to ~120 years
+  let idx = (lordIndex + 1) % 9;
+  start = new Date(end.getTime());
+  let totalYears = balanceYears;
+  for (let loop=0; loop<20 && totalYears < 120.1; loop++) {
+    const span = DASHA_YEARS[idx];
+    end = addYears(start, span);
+    rows.push({lord: DASHA_LORDS[idx], start, end, years: span});
+    totalYears += span;
+    start = new Date(end.getTime());
+    idx = (idx + 1) % 9;
+  }
+  return { rows, balanceYears, birthLord: DASHA_LORDS[lordIndex] };
+}
+
+/* Geocoding using OpenStreetMap Nominatim */
+async function searchPlaces(q) {
+  if (!q || q.length < 3) return [];
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&addressdetails=1&limit=5`;
+  const res = await fetch(url, {headers: {'Accept-Language':'ta,en'}});
+  if (!res.ok) return [];
+  return await res.json();
+}
+
+/* Parse datetime-local without browser timezone bleed */
+function parseLocalDateTime(value) {
+  const [d, t] = (value || "").split("T");
+  if (!d || !t) return null;
+  const [Y, M, D] = d.split("-").map(Number);
+  const [h, m] = t.split(":").map(Number);
+  return { Y, M, D, h, m };
+}
+function makeUTC({Y,M,D,h,m}, tzOffsetHours) {
+  const offMin = Math.round(tzOffsetHours * 60);
+  const hh = h - Math.trunc(offMin/60);
+  const mm = m - (offMin % 60);
+  return new Date(Date.UTC(Y, M-1, D, hh, mm, 0));
+}
+
+/* Main calculation */
+async function calculate() {
+  const status = document.getElementById("status");
+  status.textContent = "கணக்கிடுகிறது…";
+  try {
+    const dtStr = document.getElementById("dt").value;
+    const place = document.getElementById("place").value.trim();
+    const lat = parseFloat(document.getElementById("lat").value);
+    const lon = parseFloat(document.getElementById("lon").value);
+    const tz = parseFloat(document.getElementById("tz").value || "5.5");
+
+    const parsed = parseLocalDateTime(dtStr);
+    if (!parsed) throw new Error("பிறந்த தேதி/நேரம் சரியாக இல்லை.");
+    if (!isFinite(lat) || !isFinite(lon)) throw new Error("இடத்தைத் தேடி, பட்டியலில் இருந்து தேர்வு செய்யவும் (அட்ச/தேக்கரேகை தேவை).");
+
+    const birthUTC = makeUTC(parsed, tz);
+    const time = Astronomy.MakeTime(birthUTC);
+
+    // Tropical longitudes (geocentric apparent) of planets
+    const ayan = lahiriAyanamsa(birthUTC);
+    const longs = {};
+    for (const p of ["Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn"]) {
+      longs[p] = eclipticLongitude(p, time);
+    }
+    // Rahu/Ketu (mean node)
+    const rahu = meanLunarNodeLongitude(birthUTC);
+    longs["Rahu"] = rahu;
+    longs["Ketu"] = degNorm(rahu + 180);
+
+    // Convert to sidereal (Lahiri)
+    const sid = {};
+    for (const k of Object.keys(longs)) sid[k] = degNorm(longs[k] - ayan);
+
+    // Ascendant
+    const asc = ascendantLongitude(birthUTC, lat, lon);
+    const ascSid = degNorm(asc - ayan);
+
+    // Prepare D1 chart
+    const d1 = document.getElementById("chart-d1");
+    buildSouthGrid(d1);
+    const ascSign = Math.floor(ascSid/30);
+    placePoint(d1, ascSign, `லக்னம் ${toTamilDigits(dms(ascSid%30))}`);
+    for (const pl of PLANETS) {
+      const λ = sid[pl.key];
+      const sgn = Math.floor(λ/30);
+      const degInSign = λ % 30;
+      placePoint(d1, sgn, `${pl.name} ${toTamilDigits(dms(degInSign))}`);
+    }
+
+    // Prepare D9 chart (Navamsa)
+    const d9 = document.getElementById("chart-d9");
+    buildSouthGrid(d9);
+    const ascNav = navamsaSignIndex(ascSid);
+    placePoint(d9, ascNav, `லக்னம்`);
+    for (const pl of PLANETS) {
+      const λ = sid[pl.key];
+      const sgn = navamsaSignIndex(λ);
+      placePoint(d9, sgn, pl.name);
+    }
+
+    // Panchanga (basic)
+    const moonSid = sid["Moon"];
+    const sunSid = sid["Sun"];
+    const tithiNum = Math.floor(degNorm(moonSid - sunSid) / 12) + 1; // 12° per tithi
+    const { idx: nakIdx, pada, frac } = nakshatraFromMoon(moonSid);
+    const panch = [
+      `நட்சத்திரம்: ${NAKSHATRA_TA[nakIdx-1]} (பாதம் ${toTamilDigits(pada)})`,
+      `திதி: ${TITHI_TA[tithiNum-1]}`
+    ].join("\n");
+    document.getElementById("panchanga").textContent = panch;
+
+    // Vimshottari Dasha
+    const { rows, balanceYears, birthLord } = computeVimshottari(moonSid, birthUTC);
+    document.getElementById("dasha-balance").innerHTML =
+      `பிறந்த நேர தசை: <span class="badge">${birthLord}</span>\n` +
+      `தசை இருப்பு (மீதமுள்ள காலம்): ${toTamilDigits(formatDurationYears(balanceYears))}`;
+
+    const tbody = document.querySelector("#dasha-table tbody");
+    tbody.innerHTML = "";
+    for (const r of rows.slice(0, 18)) { // show 18 rows
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${r.lord}</td>
+        <td>${formatDateLocal(r.start, tz)}</td>
+        <td>${formatDateLocal(r.end, tz)}</td>
+        <td>${formatDurationYears(r.years)}</td>`;
+      tbody.appendChild(tr);
+    }
+
+    status.textContent = "முடிந்தது ✅";
+  } catch (e) {
+    document.getElementById("status").innerHTML = `<span class="error">${e.message}</span>`;
+    console.error(e);
+  }
+}
+
+/* Navamsa sign index (0..11) from sidereal longitude */
+function navamsaSignIndex(sidLon) {
+  const sign = Math.floor(sidLon / 30);  // 0..11
+  const degInSign = sidLon % 30;
+  const part = Math.floor(degInSign / (30/9)); // 0..8
+  // Start sign rule: movable -> same; fixed -> 9th; dual -> 5th
+  const movable = new Set([0,3,6,9]);
+  const fixed = new Set([1,4,7,10]);
+  const dual = new Set([2,5,8,11]);
+  let start;
+  if (movable.has(sign)) start = sign;
+  else if (fixed.has(sign)) start = (sign + 8) % 12; // 9th from sign
+  else start = (sign + 4) % 12; // 5th from sign
+  return (start + part) % 12;
+}
+
+/* UI wiring */
+document.getElementById("calc").addEventListener("click", calculate);
+document.getElementById("place").addEventListener("input", async (e) => {
+  const q = e.target.value.trim();
+  const list = document.getElementById("place-list");
+  list.innerHTML = "";
+  if (q.length < 3) return;
+  const results = await searchPlaces(q);
+  for (const r of results) {
+    const opt = document.createElement("option");
+    opt.value = r.display_name;
+    opt.dataset.lat = r.lat;
+    opt.dataset.lon = r.lon;
+    list.appendChild(opt);
+  }
+});
+document.getElementById("place").addEventListener("change", async (e) => {
+  const val = e.target.value;
+  const options = Array.from(document.getElementById("place-list").children);
+  const match = options.find(o => o.value === val);
+  if (match) {
+    document.getElementById("lat").value = parseFloat(match.dataset.lat).toFixed(6);
+    document.getElementById("lon").value = parseFloat(match.dataset.lon).toFixed(6);
+  }
+});
+
+// Initialize blank grids
+buildSouthGrid(document.getElementById("chart-d1"));
+buildSouthGrid(document.getElementById("chart-d9"));
+</script>
+</body>
+</html>
